@@ -14,4 +14,6 @@ public interface IFlightService
     Task<Flight> CreateAsync(Flight flight, CancellationToken cancellationToken = default);
 
     Task<Flight> UpdateAsync(int id, Flight flight, CancellationToken cancellationToken = default);
+
+    Task DeleteAsync(int id, CancellationToken cancellationToken = default);
 }

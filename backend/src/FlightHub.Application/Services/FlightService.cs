@@ -35,4 +35,11 @@ public class FlightService(IFlightRepository flightRepository) : IFlightService
     {
         return flightRepository.UpdateAsync(flight, cancellationToken);
     }
+
+    // SRP: Delete an existing flight by delegating to the repository.
+    public Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        // Future microcycle: handle not-found behaviour and domain rules around deletion.
+        return flightRepository.DeleteAsync(id, cancellationToken);
+    }
 }

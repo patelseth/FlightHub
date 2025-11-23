@@ -55,4 +55,14 @@ public class FlightsController(IFlightService flightService) : ControllerBase
         // Future microcycle: Add validation (id mismatch), not-found handling, and richer error responses here.
         return Ok(updatedFlight);
     }
+
+    // SRP (Single Responsibility Principle): This endpoint handles DELETE /api/flights/{id} and delegates the deletion to the service.
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await flightService.DeleteAsync(id);
+
+        // Future microcycle: return 404 when the flight does not exist and add logging/validation.
+        return NoContent();
+    }
 }
