@@ -61,7 +61,7 @@ public class FlightsControllerTests
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
 
         // Confirm the response body contains a list of Flight objects.
-        var returnedFlights = Assert.IsAssignableFrom<IReadOnlyList<Flight>>(okResult.Value);
+        var returnedFlights = Assert.IsType<IReadOnlyList<Flight>>(okResult.Value, exactMatch: false);
 
         Assert.Equal(flights.Count, returnedFlights.Count);
         Assert.Equal(flights[0].Id, returnedFlights[0].Id);
