@@ -11,4 +11,6 @@ public interface IFlightRepository
     Task<IReadOnlyList<Flight>> GetAllAsync(CancellationToken cancellationToken = default);
 
     Task<Flight?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    
+    Task<Flight> AddAsync(Flight flight, CancellationToken cancellationToken = default);
 }

@@ -21,4 +21,11 @@ public class FlightService(IFlightRepository flightRepository) : IFlightService
         // Additional rules (such as not-found handling) can be added here later.
         return flightRepository.GetByIdAsync(id, cancellationToken);
     }
+
+    // SRP (Single Responsibility Principle): Create a new flight
+    public Task<Flight> CreateAsync(Flight flight, CancellationToken cancellationToken = default)
+    {
+        // Additional rules (validation, defaults, etc.) can be added here later.
+        return flightRepository.AddAsync(flight, cancellationToken);
+    }
 }
