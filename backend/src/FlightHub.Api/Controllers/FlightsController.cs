@@ -12,7 +12,7 @@ namespace FlightHub.Api.Controllers;
 public class FlightsController(IFlightService flightService) : ControllerBase
 {
     // SRP (Single Responsibility Principle): This endpoint handles the GET /api/flights request and delegates
-    // flight retrieval to the application layer.
+    // flight retrieval to the service.
     public async Task<ActionResult<IReadOnlyList<Flight>>> GetAll()
     {
         var flights = await flightService.GetAllAsync();
@@ -21,7 +21,7 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     }
 
     // SRP (Single Responsibility Principle): 
-    // This endpoint handles GET /api/flights/{id} and delegates retrieval to the application layer.
+    // This endpoint handles GET /api/flights/{id} and delegates retrieval to the service.
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Flight>> GetById(int id)
     {
@@ -43,5 +43,16 @@ public class FlightsController(IFlightService flightService) : ControllerBase
             nameof(GetById),
             new { id = createdFlight.Id },
             createdFlight);
+    }
+
+    // SRP (Single Responsibility Principle): This endpoint handles PUT /api/flights/{id} 
+    // and delegates update operations to the service.
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<Flight>> Update(int id, [FromBody] Flight flight)
+    {
+        var updatedFlight = await flightService.UpdateAsync(id, flight);
+
+        // Future microcycle: Add validation (id mismatch), not-found handling, and richer error responses here.
+        return Ok(updatedFlight);
     }
 }

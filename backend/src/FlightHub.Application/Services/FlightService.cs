@@ -8,24 +8,31 @@ namespace FlightHub.Application.Services;
 // concrete data-access implementation.
 public class FlightService(IFlightRepository flightRepository) : IFlightService
 {
-    // SRP (Single Responsibility Principle): Retrieve flights
+    // SRP (Single Responsibility Principle): Retrieve flights.
     public Task<IReadOnlyList<Flight>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         // Additional rules (filtering, sorting, and validation) can be added here later.
         return flightRepository.GetAllAsync(cancellationToken);
     }
 
-    // SRP (Single Responsibility Principle): Retrieve a single flight by id 
+    // SRP (Single Responsibility Principle): Retrieve a single flight by id.
     public Task<Flight?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         // Additional rules (such as not-found handling) can be added here later.
         return flightRepository.GetByIdAsync(id, cancellationToken);
     }
 
-    // SRP (Single Responsibility Principle): Create a new flight
+    // SRP (Single Responsibility Principle): Create a new flight.
     public Task<Flight> CreateAsync(Flight flight, CancellationToken cancellationToken = default)
     {
         // Additional rules (validation, defaults, etc.) can be added here later.
         return flightRepository.AddAsync(flight, cancellationToken);
+    }
+
+    // SRP (Single Responsibility Principle): Update an existing flight.
+    // The repository is responsible for applying the update.
+    public Task<Flight> UpdateAsync(int id, Flight flight, CancellationToken cancellationToken = default)
+    {
+        return flightRepository.UpdateAsync(flight, cancellationToken);
     }
 }
