@@ -20,7 +20,7 @@ public class FlightServiceTests
     }
 
     [Fact]
-    public async Task GetAllAsync_ReturnsAllFlightsFromRepository()
+    public async Task GetAllAsync_ReturnsAllFlights()
     {
         // Arrange
         var flights = new List<Flight>
@@ -63,5 +63,38 @@ public class FlightServiceTests
 
         // Confirm the service retrieves flights by calling the repository
         _repositoryMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReturnsFlight_WhenItExists()
+    {
+        // Arrange
+        var flight = new Flight
+        {
+            Id = 1,
+            FlightNumber = "FH100",
+            Airline = "TestAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL",
+            DepartureTime = new DateTime(2025, 11, 26, 9, 0, 0, DateTimeKind.Utc),
+            ArrivalTime = new DateTime(2025, 11, 26, 10, 0, 0, DateTimeKind.Utc),
+            Status = FlightStatus.Scheduled
+        };
+
+        // Set up the repository to return this flight when queried by id.
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(flight.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(flight);
+
+        // Act
+        var result = await _flightService.GetByIdAsync(flight.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(flight.Id, result!.Id);
+        Assert.Equal(flight.FlightNumber, result.FlightNumber);
+
+        // Confirm the service asks the repository for the specific flight id.
+        _repositoryMock.Verify(r => r.GetByIdAsync(flight.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
