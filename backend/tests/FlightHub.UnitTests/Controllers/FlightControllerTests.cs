@@ -161,4 +161,58 @@ public class FlightsControllerTests
             s => s.CreateAsync(newFlight, It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task Update_ReturnsOkWithUpdatedFlight_WhenFlightExists()
+    {
+        // Arrange
+        var existingId = 5;
+
+        var updateRequest = new Flight
+        {
+            Id = existingId,
+            FlightNumber = "FH555",
+            Airline = "UpdateAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "MEL",
+            DepartureTime = new DateTime(2025, 11, 28, 8, 0, 0, DateTimeKind.Utc),
+            ArrivalTime = new DateTime(2025, 11, 28, 10, 0, 0, DateTimeKind.Utc),
+            Status = FlightStatus.Scheduled
+        };
+
+        var updatedFlight = new Flight
+        {
+            Id = existingId,
+            FlightNumber = updateRequest.FlightNumber,
+            Airline = updateRequest.Airline,
+            DepartureAirport = updateRequest.DepartureAirport,
+            ArrivalAirport = updateRequest.ArrivalAirport,
+            DepartureTime = updateRequest.DepartureTime,
+            ArrivalTime = updateRequest.ArrivalTime,
+            Status = updateRequest.Status
+        };
+
+        // Arrange the service mock to return the updated flight when UpdateAsync is called.
+        _flightServiceMock
+            .Setup(s => s.UpdateAsync(existingId, updateRequest, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(updatedFlight);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Update(existingId, updateRequest);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+
+        // Confirm the response body contains the updated flight.
+        var returnedFlight = Assert.IsType<Flight>(okResult.Value);
+        Assert.Equal(updatedFlight.Id, returnedFlight.Id);
+        Assert.Equal(updatedFlight.FlightNumber, returnedFlight.FlightNumber);
+
+        // Confirm the controller calls the service to update the flight.
+        _flightServiceMock.Verify(
+            s => s.UpdateAsync(existingId, updateRequest, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
 }
