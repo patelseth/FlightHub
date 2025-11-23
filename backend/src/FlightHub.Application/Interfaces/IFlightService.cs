@@ -16,4 +16,6 @@ public interface IFlightService
     Task<Flight> UpdateAsync(int id, Flight flight, CancellationToken cancellationToken = default);
 
     Task DeleteAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Flight>> SearchAsync(string? airline, string? departureAirport, string? arrivalAirport, DateTime? departureFrom, DateTime? departureTo, CancellationToken cancellationToken = default);
 }

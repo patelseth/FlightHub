@@ -36,10 +36,52 @@ public class FlightService(IFlightRepository flightRepository) : IFlightService
         return flightRepository.UpdateAsync(flight, cancellationToken);
     }
 
-    // SRP: Delete an existing flight by delegating to the repository.
+    // SRP (Single Responsibility Principle): Delete an existing flight by delegating to the repository.
     public Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         // Future microcycle: handle not-found behaviour and domain rules around deletion.
         return flightRepository.DeleteAsync(id, cancellationToken);
+    }
+
+    // SRP (Single Responsibility Principle): 
+    // Apply search filtering rules at the application layer while delegating data access to the repository.
+    public async Task<IReadOnlyList<Flight>> SearchAsync(
+        string? airline,
+        string? departureAirport,
+        string? arrivalAirport,
+        DateTime? departureFrom,
+        DateTime? departureTo,
+        CancellationToken cancellationToken = default)
+    {
+        var flights = await flightRepository.GetAllAsync(cancellationToken);
+
+        var query = flights.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(airline))
+        {
+            query = query.Where(f => f.Airline == airline);
+        }
+
+        if (!string.IsNullOrWhiteSpace(departureAirport))
+        {
+            query = query.Where(f => f.DepartureAirport == departureAirport);
+        }
+
+        if (!string.IsNullOrWhiteSpace(arrivalAirport))
+        {
+            query = query.Where(f => f.ArrivalAirport == arrivalAirport);
+        }
+
+        if (departureFrom.HasValue)
+        {
+            query = query.Where(f => f.DepartureTime >= departureFrom.Value);
+        }
+
+        if (departureTo.HasValue)
+        {
+            query = query.Where(f => f.DepartureTime <= departureTo.Value);
+        }
+
+        return [.. query];
     }
 }

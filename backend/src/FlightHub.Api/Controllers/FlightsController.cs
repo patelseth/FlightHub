@@ -56,7 +56,8 @@ public class FlightsController(IFlightService flightService) : ControllerBase
         return Ok(updatedFlight);
     }
 
-    // SRP (Single Responsibility Principle): This endpoint handles DELETE /api/flights/{id} and delegates the deletion to the service.
+    // SRP (Single Responsibility Principle): 
+    // This endpoint handles DELETE /api/flights/{id} and delegates the deletion to the service.
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -64,5 +65,25 @@ public class FlightsController(IFlightService flightService) : ControllerBase
 
         // Future microcycle: return 404 when the flight does not exist and add logging/validation.
         return NoContent();
+    }
+
+    // SRP (Single Responsibility Principle): 
+    // This endpoint handles GET /api/flights/search and delegates search to the service.
+    [HttpGet("search")]
+    public async Task<ActionResult<IReadOnlyList<Flight>>> Search(
+        [FromQuery] string? airline,
+        [FromQuery] string? departureAirport,
+        [FromQuery] string? arrivalAirport,
+        [FromQuery] DateTime? departureFrom,
+        [FromQuery] DateTime? departureTo)
+    {
+        var flights = await flightService.SearchAsync(
+            airline,
+            departureAirport,
+            arrivalAirport,
+            departureFrom,
+            departureTo);
+
+        return Ok(flights);
     }
 }
