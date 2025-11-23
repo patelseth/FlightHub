@@ -8,4 +8,6 @@ namespace FlightHub.Application.Interfaces;
 public interface IFlightService
 {
     Task<IReadOnlyList<Flight>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<Flight?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 }
