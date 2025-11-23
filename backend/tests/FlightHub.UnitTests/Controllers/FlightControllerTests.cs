@@ -240,4 +240,83 @@ public class FlightsControllerTests
             s => s.DeleteAsync(existingId, It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task Search_ReturnsOkWithFlightsFromService()
+    {
+        // Arrange
+        var flights = new List<Flight>
+        {
+            new()
+            {
+                Id = 1,
+                FlightNumber = "FH100",
+                Airline = "TestAir",
+                DepartureAirport = "WLG",
+                ArrivalAirport = "AKL",
+                DepartureTime = new DateTime(2025, 11, 26, 9, 0, 0, DateTimeKind.Utc),
+                ArrivalTime = new DateTime(2025, 11, 26, 10, 0, 0, DateTimeKind.Utc),
+                Status = FlightStatus.Scheduled
+            },
+            new()
+            {
+                Id = 2,
+                FlightNumber = "FH200",
+                Airline = "TestAir",
+                DepartureAirport = "WLG",
+                ArrivalAirport = "CHC",
+                DepartureTime = new DateTime(2025, 11, 27, 9, 0, 0, DateTimeKind.Utc),
+                ArrivalTime = new DateTime(2025, 11, 27, 11, 0, 0, DateTimeKind.Utc),
+                Status = FlightStatus.InAir
+            }
+        };
+
+        var airline = "TestAir";
+        var departureAirport = "WLG";
+        var arrivalAirport = "AKL";
+        var departureFrom = new DateTime(2025, 11, 25, 0, 0, 0, DateTimeKind.Utc);
+        var departureTo = new DateTime(2025, 11, 27, 23, 59, 59, DateTimeKind.Utc);
+
+        // Arrange the service mock to return the matching flights when SearchAsync is called.
+        _flightServiceMock
+            .Setup(s => s.SearchAsync(
+                airline,
+                departureAirport,
+                arrivalAirport,
+                departureFrom,
+                departureTo,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(flights);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Search(
+            airline,
+            departureAirport,
+            arrivalAirport,
+            departureFrom,
+            departureTo);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+
+        // Confirm the response body contains a list of Flight objects.
+        var returnedFlights = Assert.IsType<IReadOnlyList<Flight>>(okResult.Value, exactMatch: false);
+
+        Assert.Equal(flights.Count, returnedFlights.Count);
+        Assert.Equal(flights[0].Id, returnedFlights[0].Id);
+        Assert.Equal(flights[1].FlightNumber, returnedFlights[1].FlightNumber);
+
+        // Confirm the controller calls the service to search for flights.
+        _flightServiceMock.Verify(
+            s => s.SearchAsync(
+                airline,
+                departureAirport,
+                arrivalAirport,
+                departureFrom,
+                departureTo,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
 }
