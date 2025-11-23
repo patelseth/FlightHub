@@ -1,6 +1,21 @@
+using FlightHub.Application.Interfaces;
+using FlightHub.Application.Services;
+using FlightHub.Infrastructure.Data;
+using FlightHub.Infrastructure.Repositories;
+using FlightHub.Infrastructure.Seed;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// EF Core InMemory DbContext
+builder.Services.AddDbContext<FlightDbContext>(options =>
+    options.UseInMemoryDatabase("FlightHub"));
+
+builder.Services.AddScoped<IFlightRepository, FlightRepository>();
+builder.Services.AddScoped<IFlightService, FlightService>();
+
+builder.Services.AddScoped<IFlightRepository, FlightRepository>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -21,6 +36,22 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<FlightDbContext>();
+
+    var csvPath = Path.Combine(
+        app.Environment.ContentRootPath,
+        "..",
+        "FlightHub.Infrastructure",
+        "Data",
+        "FlightInformation.csv");
+
+    csvPath = Path.GetFullPath(csvPath);
+
+    await FlightDbSeeder.SeedFromCsvAsync(context, csvPath);
+}
 
 if (app.Environment.IsDevelopment())
 {

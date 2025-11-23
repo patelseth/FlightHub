@@ -7,7 +7,7 @@ namespace FlightHub.UnitTests.Infrastructure;
 
 public class FlightRepositoryTests
 {
-    private FlightDbContext CreateDbContext()
+    private static FlightDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<FlightDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
