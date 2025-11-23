@@ -215,4 +215,29 @@ public class FlightsControllerTests
             s => s.UpdateAsync(existingId, updateRequest, It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task Delete_ReturnsNoContent_WhenFlightIsDeleted()
+    {
+        // Arrange
+        var existingId = 5;
+
+        // Arrange the service mock to complete successfully when DeleteAsync is called.
+        _flightServiceMock
+            .Setup(s => s.DeleteAsync(existingId, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Delete(existingId);
+
+        // Assert
+        var noContentResult = Assert.IsType<NoContentResult>(result);
+
+        // Confirm the controller calls the service to delete the flight.
+        _flightServiceMock.Verify(
+            s => s.DeleteAsync(existingId, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
 }
