@@ -109,4 +109,56 @@ public class FlightsControllerTests
         // Confirm the controller queries the service for the specific flight id.
         _flightServiceMock.Verify(s => s.GetByIdAsync(flight.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Create_ReturnsCreatedAtAction_WithCreatedFlight()
+    {
+        // Arrange
+        var newFlight = new Flight
+        {
+            Id = 0,
+            FlightNumber = "FH300",
+            Airline = "CreateAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "SYD",
+            DepartureTime = new DateTime(2025, 11, 27, 9, 0, 0, DateTimeKind.Utc),
+            ArrivalTime = new DateTime(2025, 11, 27, 11, 0, 0, DateTimeKind.Utc),
+            Status = FlightStatus.Scheduled
+        };
+
+        var createdFlight = new Flight
+        {
+            Id = 10,
+            FlightNumber = newFlight.FlightNumber,
+            Airline = newFlight.Airline,
+            DepartureAirport = newFlight.DepartureAirport,
+            ArrivalAirport = newFlight.ArrivalAirport,
+            DepartureTime = newFlight.DepartureTime,
+            ArrivalTime = newFlight.ArrivalTime,
+            Status = newFlight.Status
+        };
+
+        // Arrange the service mock to return the created flight 
+        _flightServiceMock
+            .Setup(s => s.CreateAsync(newFlight, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(createdFlight);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Create(newFlight);
+
+        // Assert
+        var createdAtAction = Assert.IsType<CreatedAtActionResult>(result.Result);
+
+        // Confirm the response body contains the created flight.
+        var returnedFlight = Assert.IsType<Flight>(createdAtAction.Value);
+        Assert.Equal(createdFlight.Id, returnedFlight.Id);
+        Assert.Equal(createdFlight.FlightNumber, returnedFlight.FlightNumber);
+
+        // Confirm the controller calls the service with the new flight exactly once.
+        _flightServiceMock.Verify(
+            s => s.CreateAsync(newFlight, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
 }
