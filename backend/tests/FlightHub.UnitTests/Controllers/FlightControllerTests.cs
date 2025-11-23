@@ -319,4 +319,141 @@ public class FlightsControllerTests
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task GetById_ReturnsNotFound_WhenFlightDoesNotExist()
+    {
+        // Arrange
+        var id = 999;
+
+        _flightServiceMock
+            .Setup(s => s.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Flight?)null);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.GetById(id);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result.Result);
+
+        _flightServiceMock.Verify(
+            s => s.GetByIdAsync(id, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Create_ReturnsBadRequest_WhenModelStateIsInvalid()
+    {
+        // Arrange
+        var invalidFlight = new Flight(); // missing required fields
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+        controller.ModelState.AddModelError("FlightNumber", "Required");
+
+        // Act
+        var result = await controller.Create(invalidFlight);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.IsType<SerializableError>(badRequest.Value);
+
+        _flightServiceMock.Verify(
+            s => s.CreateAsync(It.IsAny<Flight>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Update_ReturnsBadRequest_WhenModelStateIsInvalid()
+    {
+        // Arrange
+        var id = 5;
+        var invalidFlight = new Flight { Id = id };
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+        controller.ModelState.AddModelError("FlightNumber", "Required");
+
+        // Act
+        var result = await controller.Update(id, invalidFlight);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.IsType<SerializableError>(badRequest.Value);
+
+        _flightServiceMock.Verify(
+            s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<Flight>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Update_ReturnsNotFound_WhenFlightDoesNotExist()
+    {
+        // Arrange
+        var id = 5;
+        var updateRequest = new Flight { Id = id };
+
+        _flightServiceMock
+            .Setup(s => s.UpdateAsync(id, updateRequest, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Flight?)null);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Update(id, updateRequest);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result.Result);
+
+        _flightServiceMock.Verify(
+            s => s.UpdateAsync(id, updateRequest, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+    
+    [Fact]
+    public async Task Delete_ReturnsNotFound_WhenFlightDoesNotExist()
+    {
+        // Arrange
+        var id = 10;
+
+        _flightServiceMock
+            .Setup(s => s.DeleteAsync(id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Delete(id);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+
+        _flightServiceMock.Verify(
+            s => s.DeleteAsync(id, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Delete_ReturnsNoContent_WhenFlightIsDeleted()
+    {
+        // Arrange
+        var existingId = 5;
+
+        _flightServiceMock
+            .Setup(s => s.DeleteAsync(existingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.Delete(existingId);
+
+        // Assert
+        var noContentResult = Assert.IsType<NoContentResult>(result);
+
+        _flightServiceMock.Verify(
+            s => s.DeleteAsync(existingId, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
 }
