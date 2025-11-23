@@ -4,14 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FlightHub.Api.Controllers;
 
+// DIP (Dependency Inversion Principle): methods/endpoints rely on the IFlightService abstraction, so the controller
+// stays decoupled from any specific data-access implementation.
+
 [ApiController]
 [Route("api/[controller]")]
 public class FlightsController(IFlightService flightService) : ControllerBase
 {
     // SRP (Single Responsibility Principle): This endpoint handles the GET /api/flights request and delegates
     // flight retrieval to the application layer.
-    // DIP (Dependency Inversion Principle): It relies on the IFlightService abstraction, so the controller
-    // stays decoupled from any specific implementation.
     public async Task<ActionResult<IReadOnlyList<Flight>>> GetAll()
     {
         var flights = await flightService.GetAllAsync();
@@ -19,9 +20,8 @@ public class FlightsController(IFlightService flightService) : ControllerBase
         return Ok(flights);
     }
 
-    // SRP (Single Responsibility Principle): This endpoint handles GET /api/flights/{id} and delegates retrieval to the application layer.
-    // DIP (Dependency Inversion Principle): It relies on the IFlightService abstraction, so the controller
-    // stays decoupled from any specific implementation.
+    // SRP (Single Responsibility Principle): 
+    // This endpoint handles GET /api/flights/{id} and delegates retrieval to the application layer.
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Flight>> GetById(int id)
     {
@@ -29,5 +29,19 @@ public class FlightsController(IFlightService flightService) : ControllerBase
 
         // (404 behavior will be covered in a future microcycle).
         return Ok(flight);
+    }
+
+    // SRP (Single Responsibility Principle): 
+    // This endpoint handles POST /api/flights and delegates creation to the service.
+    [HttpPost]
+    public async Task<ActionResult<Flight>> Create([FromBody] Flight flight)
+    {
+        var createdFlight = await flightService.CreateAsync(flight);
+
+        // Minimal happy-path implementation: return 201 as well as the created flight.
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = createdFlight.Id },
+            createdFlight);
     }
 }
