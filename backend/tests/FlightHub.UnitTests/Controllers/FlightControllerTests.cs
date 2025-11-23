@@ -70,4 +70,43 @@ public class FlightsControllerTests
         // Confirm the controller calls the service to retrieve flights.
         _flightServiceMock.Verify(s => s.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task GetById_ReturnsOkWithFlight_WhenFlightExists()
+    {
+        // Arrange
+        var flight = new Flight
+        {
+            Id = 1,
+            FlightNumber = "FH100",
+            Airline = "TestAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL",
+            DepartureTime = new DateTime(2025, 11, 26, 9, 0, 0, DateTimeKind.Utc),
+            ArrivalTime = new DateTime(2025, 11, 26, 10, 0, 0, DateTimeKind.Utc),
+            Status = FlightStatus.Scheduled
+        };
+
+        // Configure the mock service to return the flight when requested by id.
+        _flightServiceMock
+            .Setup(s => s.GetByIdAsync(flight.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(flight);
+
+        var controller = new FlightsController(_flightServiceMock.Object);
+
+        // Act
+        var result = await controller.GetById(flight.Id);
+
+        // Assert
+        var okResponse = Assert.IsType<OkObjectResult>(result.Result);
+
+        // Confirm the response body contains the expected flight.
+        var returnedFlight = Assert.IsType<Flight>(okResponse.Value);
+
+        Assert.Equal(flight.Id, returnedFlight.Id);
+        Assert.Equal(flight.FlightNumber, returnedFlight.FlightNumber);
+
+        // Confirm the controller queries the service for the specific flight id.
+        _flightServiceMock.Verify(s => s.GetByIdAsync(flight.Id, It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
