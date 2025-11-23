@@ -25,19 +25,24 @@ public class FlightService(IFlightRepository flightRepository) : IFlightService
     // SRP (Single Responsibility Principle): Create a new flight.
     public Task<Flight> CreateAsync(Flight flight, CancellationToken cancellationToken = default)
     {
+        if (flight.ArrivalTime < flight.DepartureTime)
+        {
+            throw new ArgumentException("ArrivalTime cannot be before DepartureTime.", nameof(flight));
+        }
+        
         // Additional rules (validation, defaults, etc.) can be added here later.
         return flightRepository.AddAsync(flight, cancellationToken);
     }
 
     // SRP (Single Responsibility Principle): Update an existing flight.
     // The repository is responsible for applying the update.
-    public Task<Flight> UpdateAsync(int id, Flight flight, CancellationToken cancellationToken = default)
+    public Task<Flight?> UpdateAsync(int id, Flight flight, CancellationToken cancellationToken = default)
     {
         return flightRepository.UpdateAsync(flight, cancellationToken);
     }
 
     // SRP (Single Responsibility Principle): Delete an existing flight by delegating to the repository.
-    public Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    public Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         // Future microcycle: handle not-found behaviour and domain rules around deletion.
         return flightRepository.DeleteAsync(id, cancellationToken);

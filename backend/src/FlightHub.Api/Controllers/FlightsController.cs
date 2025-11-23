@@ -16,7 +16,6 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<Flight>>> GetAll()
     {
         var flights = await flightService.GetAllAsync();
-
         return Ok(flights);
     }
 
@@ -27,7 +26,10 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     {
         var flight = await flightService.GetByIdAsync(id);
 
-        // (404 behavior will be covered in a future microcycle).
+        if (flight is null)
+        {
+            return NotFound();
+        } 
         return Ok(flight);
     }
 
@@ -36,9 +38,13 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Flight>> Create([FromBody] Flight flight)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var createdFlight = await flightService.CreateAsync(flight);
 
-        // Minimal happy-path implementation: return 201 as well as the created flight.
         return CreatedAtAction(
             nameof(GetById),
             new { id = createdFlight.Id },
@@ -50,9 +56,19 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<ActionResult<Flight>> Update(int id, [FromBody] Flight flight)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         var updatedFlight = await flightService.UpdateAsync(id, flight);
 
-        // Future microcycle: Add validation (id mismatch), not-found handling, and richer error responses here.
+        if (updatedFlight is null)
+        {
+            return NotFound();
+        }
+
+        // Future microcycle: add id/body consistency checks, additional validation, logging.
         return Ok(updatedFlight);
     }
 
@@ -61,9 +77,13 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await flightService.DeleteAsync(id);
+        var deleted = await flightService.DeleteAsync(id);
 
-        // Future microcycle: return 404 when the flight does not exist and add logging/validation.
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
         return NoContent();
     }
 

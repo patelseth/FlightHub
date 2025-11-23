@@ -143,4 +143,29 @@ public class FlightServiceTests
         _repositoryMock.Verify(r => r.AddAsync(newFlight, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task CreateAsync_ThrowsArgumentException_WhenArrivalBeforeDeparture()
+    {
+        // Arrange
+        var invalidFlight = new Flight
+        {
+            Id = 0,
+            FlightNumber = "FH999",
+            Airline = "InvalidAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL",
+            DepartureTime = new DateTime(2025, 11, 26, 10, 0, 0, DateTimeKind.Utc),
+            ArrivalTime = new DateTime(2025, 11, 26, 9, 0, 0, DateTimeKind.Utc), // arrival BEFORE departure
+            Status = FlightStatus.Scheduled
+        };
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => _flightService.CreateAsync(invalidFlight));
+
+        // Confirm no repository write attempt.
+        _repositoryMock.Verify(
+            r => r.AddAsync(It.IsAny<Flight>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
 }

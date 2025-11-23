@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using FlightHub.Domain.Enums;
 
 namespace FlightHub.Domain.Entities;
@@ -8,12 +9,16 @@ public class Flight
 {
     public int Id { get; set; }
 
+    [Required]
     public string FlightNumber { get; set; } = string.Empty;
 
+    [Required]
     public string Airline { get; set; } = string.Empty;
 
+    [Required]
     public string DepartureAirport { get; set; } = string.Empty;
 
+    [Required]
     public string ArrivalAirport { get; set; } = string.Empty;
 
     public DateTime DepartureTime { get; set; }
