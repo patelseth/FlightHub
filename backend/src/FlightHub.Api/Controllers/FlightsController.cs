@@ -11,8 +11,15 @@ namespace FlightHub.Api.Controllers;
 [Route("api/[controller]")]
 public class FlightsController(IFlightService flightService, ILogger<FlightsController> logger) : ControllerBase
 {
-    // SRP (Single Responsibility Principle): This endpoint handles the GET /api/flights request and delegates
-    // flight retrieval to the service.
+    /// <summary>
+    /// Returns all flights from the system.
+    /// </summary>
+    /// <returns>A list of flights.</returns>
+    /// <response code="200">Returns all flights.</response>
+    /// <remarks>
+    /// SRP (Single Responsibility Principle): This endpoint handles the GET /api/flights request and delegates
+    /// flight retrieval to the service.
+    /// </remarks>
     public async Task<ActionResult<IReadOnlyList<Flight>>> GetAll()
     {
         var flights = await flightService.GetAllAsync();
@@ -22,8 +29,17 @@ public class FlightsController(IFlightService flightService, ILogger<FlightsCont
         return Ok(flights);
     }
 
-    // SRP (Single Responsibility Principle): 
-    // This endpoint handles GET /api/flights/{id} and delegates retrieval to the service.
+    /// <summary>
+    /// Returns a single flight by id.
+    /// </summary>
+    /// <param name="id">The flight identifier.</param>
+    /// <returns>The matching flight if found.</returns>
+    /// <response code="200">Flight found.</response>
+    /// <response code="404">Flight not found.</response>
+    /// <remarks>
+    /// SRP (Single Responsibility Principle): 
+    /// This endpoint handles GET /api/flights/{id} and delegates retrieval to the service.
+    /// </remarks>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Flight>> GetById(int id)
     {
@@ -39,8 +55,17 @@ public class FlightsController(IFlightService flightService, ILogger<FlightsCont
         return Ok(flight);
     }
 
-    // SRP (Single Responsibility Principle): 
-    // This endpoint handles POST /api/flights and delegates creation to the service.
+    /// <summary>
+    /// Creates a new flight.
+    /// </summary>
+    /// <param name="flight">The flight to create.</param>
+    /// <returns>The created flight.</returns>
+    /// <response code="201">Flight created successfully.</response>
+    /// <response code="400">Invalid request body.</response>
+    /// <remarks>
+    /// SRP (Single Responsibility Principle): 
+    /// This endpoint handles POST /api/flights and delegates creation to the service.
+    /// </remarks>
     [HttpPost]
     public async Task<ActionResult<Flight>> Create([FromBody] Flight flight)
     {
@@ -60,8 +85,19 @@ public class FlightsController(IFlightService flightService, ILogger<FlightsCont
             createdFlight);
     }
 
-    // SRP (Single Responsibility Principle): This endpoint handles PUT /api/flights/{id} 
-    // and delegates update operations to the service.
+    /// <summary>
+    /// Updates an existing flight.
+    /// </summary>
+    /// <param name="id">The id of the flight being updated.</param>
+    /// <param name="flight">The updated flight model.</param>
+    /// <returns>The updated flight.</returns>
+    /// <response code="200">Successfully updated.</response>
+    /// <response code="400">Invalid request.</response>
+    /// <response code="404">Flight not found.</response>
+    /// <remarks>
+    /// SRP (Single Responsibility Principle): This endpoint handles PUT /api/flights/{id} 
+    /// and delegates update operations to the service.
+    /// </remarks>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<Flight>> Update(int id, [FromBody] Flight flight)
     {
@@ -85,8 +121,16 @@ public class FlightsController(IFlightService flightService, ILogger<FlightsCont
         return Ok(updatedFlight);
     }
 
-    // SRP (Single Responsibility Principle): 
-    // This endpoint handles DELETE /api/flights/{id} and delegates the deletion to the service.
+    /// <summary>
+    /// Deletes a flight.
+    /// </summary>
+    /// <param name="id">The flight id.</param>
+    /// <response code="204">Successfully deleted.</response>
+    /// <response code="404">Flight not found.</response>
+    /// <remarks>
+    /// SRP (Single Responsibility Principle): 
+    /// This endpoint handles DELETE /api/flights/{id} and delegates the deletion to the service.
+    /// </remarks>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -103,8 +147,20 @@ public class FlightsController(IFlightService flightService, ILogger<FlightsCont
         return NoContent();
     }
 
-    // SRP (Single Responsibility Principle): 
-    // This endpoint handles GET /api/flights/search and delegates search to the service.
+    /// <summary>
+    /// Searches flights using optional filters.
+    /// </summary>
+    /// <param name="airline">Filter by airline.</param>
+    /// <param name="departureAirport">Filter by departure airport.</param>
+    /// <param name="arrivalAirport">Filter by arrival airport.</param>
+    /// <param name="departureFrom">Earliest departure time.</param>
+    /// <param name="departureTo">Latest departure time.</param>
+    /// <returns>A filtered list of flights.</returns>
+    /// <response code="200">Flights returned.</response>
+    /// <remarks>
+    /// SRP (Single Responsibility Principle): 
+    /// This endpoint handles GET /api/flights/search and delegates search to the service.
+    /// </remarks>
     [HttpGet("search")]
     public async Task<ActionResult<IReadOnlyList<Flight>>> Search(
         [FromQuery] string? airline,

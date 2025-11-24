@@ -7,23 +7,44 @@ namespace FlightHub.Domain.Entities;
 // It only describes flight data and does not handle persistence or validation.
 public class Flight
 {
+    /// <summary>
+    /// Unique identifier of the flight.
+    /// </summary>
     public int Id { get; set; }
 
-    [Required]
-    public string FlightNumber { get; set; } = string.Empty;
+    /// <summary>
+    /// The official flight number (e.g., FH100).
+    /// </summary>
+    public required string FlightNumber { get; set; }
 
-    [Required]
-    public string Airline { get; set; } = string.Empty;
+    /// <summary>
+    /// The airline operating the flight.
+    /// </summary>
+    public required string Airline { get; set; }
 
-    [Required]
-    public string DepartureAirport { get; set; } = string.Empty;
+    /// <summary>
+    /// Departure airport code (e.g., WLG).
+    /// </summary>
+    public required string DepartureAirport { get; set; }
 
-    [Required]
-    public string ArrivalAirport { get; set; } = string.Empty;
+    /// <summary>
+    /// Arrival airport code (e.g., AKL).
+    /// </summary>
+    public required string ArrivalAirport { get; set; }
 
+    /// <summary>
+    /// UTC departure timestamp.
+    /// </summary>
     public DateTime DepartureTime { get; set; }
 
+    /// <summary>
+    /// UTC arrival timestamp.
+    /// </summary>
     public DateTime ArrivalTime { get; set; }
 
+    /// <summary>
+    /// Current flight status (Scheduled, InAir, Delayed, etc.)
+    /// </summary>
     public FlightStatus Status { get; set; }
+
 }
