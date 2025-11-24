@@ -195,7 +195,13 @@ public class FlightsControllerTests
     public async Task Create_ReturnsBadRequest_WhenModelStateIsInvalid()
     {
         // Arrange
-        var invalidFlight = new Flight();
+        var invalidFlight = new Flight
+        {
+            FlightNumber = "FH000",
+            Airline = "InvalidAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL"
+        };
 
         var controller = CreateController();
         controller.ModelState.AddModelError("FlightNumber", "Required");
@@ -273,7 +279,14 @@ public class FlightsControllerTests
     {
         // Arrange
         var id = 5;
-        var invalidFlight = new Flight { Id = id };
+        var invalidFlight = new Flight
+        {
+            Id = id,
+            FlightNumber = "FH000",
+            Airline = "InvalidAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL"
+        };
 
         var controller = CreateController();
         controller.ModelState.AddModelError("FlightNumber", "Required");
@@ -295,7 +308,14 @@ public class FlightsControllerTests
     {
         // Arrange
         var id = 5;
-        var updateRequest = new Flight { Id = id };
+        var updateRequest = new Flight
+        {
+            Id = id,
+            FlightNumber = "FH000",
+            Airline = "UpdateAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL"
+        };
 
         _flightServiceMock
             .Setup(s => s.UpdateAsync(id, updateRequest, It.IsAny<CancellationToken>()))

@@ -30,8 +30,22 @@ public class FlightRepositoryTests
         // Arrange
         var context = CreateDbContext();
         context.Flights.AddRange(
-            new Flight { Id = 1, FlightNumber = "FH100", Airline = "TestAir" },
-            new Flight { Id = 2, FlightNumber = "FH200", Airline = "SampleAir" }
+            new Flight
+            {
+                Id = 1,
+                FlightNumber = "FH100",
+                Airline = "TestAir",
+                DepartureAirport = "WLG",
+                ArrivalAirport = "AKL"
+            },
+            new Flight
+            {
+                Id = 2,
+                FlightNumber = "FH200",
+                Airline = "SampleAir",
+                DepartureAirport = "AKL",
+                ArrivalAirport = "CHC"
+            }
         );
 
         await context.SaveChangesAsync();
@@ -54,7 +68,14 @@ public class FlightRepositoryTests
     {
         // Arrange
         var context = CreateDbContext();
-        var flight = new Flight { Id = 1, FlightNumber = "FH100", Airline = "TestAir" };
+        var flight = new Flight
+        {
+            Id = 1,
+            FlightNumber = "FH100",
+            Airline = "TestAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL"
+        };
 
         context.Flights.Add(flight);
         await context.SaveChangesAsync();
@@ -83,7 +104,9 @@ public class FlightRepositoryTests
         var flight = new Flight
         {
             FlightNumber = "FH300",
-            Airline = "CreateAir"
+            Airline = "CreateAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "SYD"
         };
 
         // Act
@@ -103,7 +126,14 @@ public class FlightRepositoryTests
     {
         // Arrange
         var context = CreateDbContext();
-        var existing = new Flight { Id = 1, FlightNumber = "OldAir", Airline = "Before" };
+        var existing = new Flight
+        {
+            Id = 1,
+            FlightNumber = "OldAir",
+            Airline = "Before",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL"
+        };
 
         context.Flights.Add(existing);
         await context.SaveChangesAsync();
@@ -128,7 +158,14 @@ public class FlightRepositoryTests
     {
         // Arrange
         var context = CreateDbContext();
-        var flight = new Flight { Id = 1, FlightNumber = "DeleteMe" };
+        var flight = new Flight
+        {
+            Id = 1,
+            FlightNumber = "DeleteMe",
+            Airline = "TestAir",
+            DepartureAirport = "WLG",
+            ArrivalAirport = "AKL"
+        };
 
         context.Flights.Add(flight);
         await context.SaveChangesAsync();
