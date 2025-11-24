@@ -3,8 +3,8 @@ using FlightHub.Application.Services;
 using FlightHub.Infrastructure.Data;
 using FlightHub.Infrastructure.Repositories;
 using FlightHub.Infrastructure.Seed;
+using FlightHub.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<FlightDbContext>(options =>
     options.UseInMemoryDatabase("FlightHub"));
 
+// Application + Infrastructure services (DIP: these are wired at composition root)
 builder.Services.AddScoped<IFlightRepository, FlightRepository>();
 builder.Services.AddScoped<IFlightService, FlightService>();
 
-builder.Services.AddScoped<IFlightRepository, FlightRepository>();
-
+// Controllers + enums as strings in JSON
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -24,19 +24,13 @@ builder.Services.AddControllers()
             new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "FlightHub API",
-        Version = "v1",
-        Description = "Flight Information API (Coding Challenge)"
-    });
-});
+// Swagger + Rate limiting via extensions
+builder.Services.AddSwaggerDocumentation();
+builder.Services.AddFlightHubRateLimiting();
 
 var app = builder.Build();
 
+// Seed CSV data into the in-memory database at startup.
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<FlightDbContext>();
@@ -56,11 +50,19 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FlightHub API v1");
+    });
 }
 
 app.UseHttpsRedirection();
+
+// Global rate limiting (100 requests per minute per IP)
+app.UseFlightHubRateLimiting();
+
 app.MapControllers();
+
 app.Run();
 
 public partial class Program { }

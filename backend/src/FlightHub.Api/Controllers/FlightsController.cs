@@ -20,6 +20,7 @@ public class FlightsController(IFlightService flightService, ILogger<FlightsCont
     /// SRP (Single Responsibility Principle): This endpoint handles the GET /api/flights request and delegates
     /// flight retrieval to the service.
     /// </remarks>
+    [HttpGet]
     public async Task<ActionResult<IReadOnlyList<Flight>>> GetAll()
     {
         var flights = await flightService.GetAllAsync();
