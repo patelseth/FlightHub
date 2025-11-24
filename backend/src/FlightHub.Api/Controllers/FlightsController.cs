@@ -9,13 +9,16 @@ namespace FlightHub.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class FlightsController(IFlightService flightService) : ControllerBase
+public class FlightsController(IFlightService flightService, ILogger<FlightsController> logger) : ControllerBase
 {
     // SRP (Single Responsibility Principle): This endpoint handles the GET /api/flights request and delegates
     // flight retrieval to the service.
     public async Task<ActionResult<IReadOnlyList<Flight>>> GetAll()
     {
         var flights = await flightService.GetAllAsync();
+
+        logger.LogInformation("Returning {Count} flights", flights.Count);
+
         return Ok(flights);
     }
 
@@ -28,8 +31,11 @@ public class FlightsController(IFlightService flightService) : ControllerBase
 
         if (flight is null)
         {
+            logger.LogWarning("Flight with id {Id} not found", id);
             return NotFound();
-        } 
+        }
+
+        logger.LogInformation("Flight with id {Id} retrieved", id);
         return Ok(flight);
     }
 
@@ -40,10 +46,13 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     {
         if (!ModelState.IsValid)
         {
+            logger.LogWarning("Invalid flight model submitted for creation");
             return BadRequest(ModelState);
         }
 
         var createdFlight = await flightService.CreateAsync(flight);
+
+        logger.LogInformation("Created flight with id {Id}", createdFlight.Id);
 
         return CreatedAtAction(
             nameof(GetById),
@@ -58,6 +67,7 @@ public class FlightsController(IFlightService flightService) : ControllerBase
     {
         if (!ModelState.IsValid)
         {
+            logger.LogWarning("Invalid flight model submitted for update for id {Id}", id);
             return BadRequest(ModelState);
         }
 
@@ -65,8 +75,11 @@ public class FlightsController(IFlightService flightService) : ControllerBase
 
         if (updatedFlight is null)
         {
+            logger.LogWarning("Flight with id {Id} not found for update", id);
             return NotFound();
         }
+
+        logger.LogInformation("Updated flight with id {Id}", id);
 
         // Future microcycle: add id/body consistency checks, additional validation, logging.
         return Ok(updatedFlight);
@@ -81,8 +94,11 @@ public class FlightsController(IFlightService flightService) : ControllerBase
 
         if (!deleted)
         {
+            logger.LogWarning("Flight with id {Id} not found for deletion", id);
             return NotFound();
         }
+
+        logger.LogInformation("Deleted flight with id {Id}", id);
 
         return NoContent();
     }
@@ -103,6 +119,10 @@ public class FlightsController(IFlightService flightService) : ControllerBase
             arrivalAirport,
             departureFrom,
             departureTo);
+
+        logger.LogInformation(
+            "Search query: airline={Airline}, departureAirport={DepartureAirport}, arrivalAirport={ArrivalAirport}, departureFrom={DepartureFrom}, departureTo={DepartureTo}. Returned {Count} results.",
+            airline, departureAirport, arrivalAirport, departureFrom, departureTo, flights.Count);
 
         return Ok(flights);
     }
