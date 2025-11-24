@@ -2,11 +2,15 @@ using FlightHub.Domain.Entities;
 using FlightHub.Infrastructure.Data;
 using FlightHub.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace FlightHub.UnitTests.Infrastructure;
 
 public class FlightRepositoryTests
 {
+    #region Setup
+
     private static FlightDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<FlightDbContext>()
@@ -15,6 +19,10 @@ public class FlightRepositoryTests
 
         return new FlightDbContext(options);
     }
+
+    #endregion
+
+    #region GetAllAsync
 
     [Fact]
     public async Task GetAllAsync_ReturnsAllFlights()
@@ -37,6 +45,10 @@ public class FlightRepositoryTests
         Assert.Equal(2, result.Count);
     }
 
+    #endregion
+
+    #region GetByIdAsync
+
     [Fact]
     public async Task GetByIdAsync_ReturnsFlight_WhenExists()
     {
@@ -56,6 +68,10 @@ public class FlightRepositoryTests
         Assert.NotNull(result);
         Assert.Equal("FH100", result!.FlightNumber);
     }
+
+    #endregion
+
+    #region AddAsync
 
     [Fact]
     public async Task AddAsync_PersistsFlight()
@@ -78,6 +94,10 @@ public class FlightRepositoryTests
         Assert.Equal("FH300", created.FlightNumber);
     }
 
+    #endregion
+
+    #region UpdateAsync
+
     [Fact]
     public async Task UpdateAsync_UpdatesExistingFlight()
     {
@@ -99,6 +119,10 @@ public class FlightRepositoryTests
         Assert.Equal("NewAir", updated!.FlightNumber);
     }
 
+    #endregion
+
+    #region DeleteAsync
+
     [Fact]
     public async Task DeleteAsync_RemovesExistingFlight()
     {
@@ -118,4 +142,35 @@ public class FlightRepositoryTests
         Assert.True(deleted);
         Assert.Null(await context.Flights.FindAsync(1));
     }
+
+    #endregion
+
+    #region Logging
+
+    [Fact]
+    public async Task DeleteAsync_ReturnsFalse_AndLogsWarning_WhenFlightNotFound()
+    {
+        // Arrange
+        var context = CreateDbContext();
+        var loggerMock = new Mock<ILogger<FlightRepository>>();
+        var repo = new FlightRepository(context, loggerMock.Object);
+
+        // Act
+        var result = await repo.DeleteAsync(999);
+
+        // Assert
+        Assert.False(result);
+
+        loggerMock.Verify(
+            logger => logger.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state.ToString()!.Contains("not found", StringComparison.OrdinalIgnoreCase)),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    #endregion
 }

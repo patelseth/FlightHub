@@ -2,13 +2,17 @@ using FlightHub.Application.Interfaces;
 using FlightHub.Application.Services;
 using FlightHub.Domain.Entities;
 using FlightHub.Domain.Enums;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace FlightHub.UnitTests.Services;
 
 public class FlightServiceTests
 {
+    #region Setup
+
     private readonly Mock<IFlightRepository> _repositoryMock;
+    private readonly Mock<ILogger<FlightService>> _loggerMock;
     private readonly IFlightService _flightService;
 
     public FlightServiceTests()
@@ -16,8 +20,14 @@ public class FlightServiceTests
         // DIP (Dependency Inversion Principle): FlightService depends on an abstraction (IFlightRepository),
         // which we replace here with a mock to keep this test focused only on service behavior.
         _repositoryMock = new Mock<IFlightRepository>();
-        _flightService = new FlightService(_repositoryMock.Object);
+        _loggerMock = new Mock<ILogger<FlightService>>();
+
+        _flightService = new FlightService(_repositoryMock.Object, _loggerMock.Object);
     }
+
+    #endregion
+
+    #region GetAllAsync
 
     [Fact]
     public async Task GetAllAsync_ReturnsAllFlights()
@@ -65,6 +75,10 @@ public class FlightServiceTests
         _repositoryMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    #endregion
+
+    #region GetByIdAsync
+
     [Fact]
     public async Task GetByIdAsync_ReturnsFlight_WhenItExists()
     {
@@ -97,6 +111,10 @@ public class FlightServiceTests
         // Confirm the service asks the repository for the specific flight id.
         _repositoryMock.Verify(r => r.GetByIdAsync(flight.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    #endregion
+
+    #region CreateAsync
 
     [Fact]
     public async Task CreateAsync_ReturnsCreatedFlight()
@@ -143,6 +161,10 @@ public class FlightServiceTests
         _repositoryMock.Verify(r => r.AddAsync(newFlight, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    #endregion
+
+    #region Validation
+
     [Fact]
     public async Task CreateAsync_ThrowsArgumentException_WhenArrivalBeforeDeparture()
     {
@@ -168,4 +190,37 @@ public class FlightServiceTests
             r => r.AddAsync(It.IsAny<Flight>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
+
+    #endregion
+
+    #region Logging
+
+    [Fact]
+    public async Task GetByIdAsync_LogsWarning_WhenFlightNotFound()
+    {
+        // Arrange
+        const int missingId = 999;
+
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(missingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Flight?)null);
+
+        // Act
+        var result = await _flightService.GetByIdAsync(missingId);
+
+        // Assert
+        Assert.Null(result);
+
+        _loggerMock.Verify(
+            logger => logger.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state.ToString()!.Contains("not found", StringComparison.OrdinalIgnoreCase)),
+                null,
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    #endregion
 }
