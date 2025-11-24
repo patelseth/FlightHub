@@ -1,12 +1,13 @@
 using FlightHub.Application.Interfaces;
 using FlightHub.Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace FlightHub.Application.Services;
 
 // SRP (Single Responsibility Principle): This service handle flight-related operations at the application layer. 
 // DIP (Dependency Inversion Principle): It depends on IFlightRepository, keeping it independent of any
 // concrete data-access implementation.
-public class FlightService(IFlightRepository flightRepository) : IFlightService
+public class FlightService(IFlightRepository flightRepository, ILogger<FlightService> logger) : IFlightService
 {
     // SRP (Single Responsibility Principle): Retrieve flights.
     public Task<IReadOnlyList<Flight>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -16,10 +17,18 @@ public class FlightService(IFlightRepository flightRepository) : IFlightService
     }
 
     // SRP (Single Responsibility Principle): Retrieve a single flight by id.
-    public Task<Flight?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Flight?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         // Additional rules (such as not-found handling) can be added here later.
-        return flightRepository.GetByIdAsync(id, cancellationToken);
+        var flight = await flightRepository.GetByIdAsync(id, cancellationToken);
+
+        if (flight is null)
+        {
+            // Log a warning whenever the requested flight cannot be found.
+            logger.LogWarning("Flight with id {Id} not found.", id);
+        }
+
+        return flight;
     }
 
     // SRP (Single Responsibility Principle): Create a new flight.
